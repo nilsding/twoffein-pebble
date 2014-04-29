@@ -1,0 +1,25 @@
+{
+  "uuid": "79e5f9af-b28e-4ea8-a7ba-c1968d3b464e",
+  "shortName": "Twoffein",
+  "longName": "Twoffein",
+  "companyName": "nilsding",
+  "versionCode": 1,
+  "versionLabel": "0.1.0",
+  "capabilities": [ "configurable" ],
+  "watchapp": {
+    "watchface": false
+  },
+  "appKeys": {
+    "SELECT": 0
+  },
+  "resources": {
+    "media": [
+      {
+        "type": "png",
+        "name": "APPICON",
+        "file": "images/appicon.png",
+        "menuIcon": true
+      }
+    ]
+  }
+}
