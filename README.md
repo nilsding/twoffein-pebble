@@ -10,3 +10,4 @@ License: GPLv3
 - [ ] make drink selection changable via the Pebble app on the iOS/Android device
 - [ ] port it to the new™ Twoffein3 API
 - [ ] add it to the Pebble app store
+- [ ] clean up code
