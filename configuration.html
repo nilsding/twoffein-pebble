@@ -1,78 +1,99 @@
-<!-- twoffein_pebble                             -->
-<!-- (c) 2014 nilsding                           -->
-<!-- https://github.com/nilsding/twoffein-pebble -->
 <!DOCTYPE html>
 <html>
-  <head>
-    <title>Configure Twoffein</title>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" />
-    <script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
-    <script src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
-  </head>
-  <body>
-    <div data-role="page" id="main">
-      <div data-role="header" class="jqm-header">
-        <h1>Twoffein</h1>
-      </div>
-
-      <div data-role="content">
-
-        <div data-role="fieldcontain">
-          <label for="screen-name">User name:</label>
-          <textarea cols="40" rows="8" name="screen-name" id="screen-name"></textarea>
+    <head>
+        <title>Configure Twoffein</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0, minimum-scale=1.0, maximum-scale=1.0">
+        <link rel="stylesheet" href="http://static.nilsding.org/css/superhero.css" />
+        <script src="http://static.nilsding.org/jquery.js"></script>
+    </head>
+    <body>
+        <div class="container">
+            <div class="form-group">
+                <label for="screen-name">User name:</label>
+                <input type="text" id="screen-name" class="form-control">
+            </div>
+            
+            <div class="form-group">
+                <label for="api-key">API Key:</label>
+                <input type="text" id="api-key" class="form-control">
+            </div>
+            
+            <hr />
+            <div class="form-group">
+                <label for="drink-up">Drink 1 (Up):</label>
+                <select id="drink-up" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label for="drink-select">Drink 2 (Select):</label>
+                <select id="drink-select" class="form-control"></select>
+            </div>
+            <div class="form-group">
+                <label for="drink-down">Drink 3 (Down):</label>
+                <select id="drink-down" class="form-control"></select>
+            </div>
+            
+            <div class="row">
+                <div class="col-xs-6">
+                    <button type="button" class="btn btn-default btn-lg btn-block" id="btn-cancel">Cancel</button>
+                </div>
+                <div class="col-xs-6">
+                    <button type="button" class="btn btn-primary btn-lg btn-block" id="btn-submit">Save</button>
+                </div>
+            </div>
         </div>
-
-        <div data-role="fieldcontain">
-          <label for="api-key">API Key:</label>
-          <textarea cols="40" rows="8" name="api-key" id="api-key"></textarea>
-        </div>
-
-        <div class="ui-body ui-body-b">
-          <fieldset class="ui-grid-a">
-              <div class="ui-block-a"><button type="submit" data-theme="d" id="b-cancel">Cancel</button></div>
-              <div class="ui-block-b"><button type="submit" data-theme="a" id="b-submit">Save</button></div>
-            </fieldset>
-          </div>
-        </div>
-      </div>
-    </div>
-    <script>
-      function saveOptions() {
-        var options = {
-          'screenName': $("#screen-name").val(),
-          'apiKey': $("#api-key").val(),
-        }
-        if (typeof window.localStorage !== "undefined") {
-            window.localStorage.twoffeinOptions = JSON.stringify(options);
-        }
-        return options;
-      }
-
-      $().ready(function() {
-        if (typeof window.localStorage !== "undefined") {
-            if (window.localStorage.twoffeinOptions) {
-                options = JSON.parse(window.localStorage.twoffeinOptions);
-                $("#screen-name").val(options.screenName);
-                $("#api-key").val(options.apiKey);
+        <script>
+            function saveOptions() {
+                var options = {
+                    'screenName':  $("#screen-name").val(),
+                    'apiKey':      $("#api-key").val(),
+                    'drinkUp':     { 'key': $("#drink-up").val(),     'drink': $("#drink-up option[value=" + $("#drink-up").val() + "]").html() },
+                    'drinkSelect': { 'key': $("#drink-select").val(), 'drink': $("#drink-select option[value=" + $("#drink-select").val() + "]").html() },
+                    'drinkDown':   { 'key': $("#drink-down").val(),   'drink': $("#drink-down option[value=" + $("#drink-down").val() + "]").html() },
+                }
+                if (typeof window.localStorage !== "undefined") {
+                    window.localStorage.twoffeinOptions = JSON.stringify(options);
+                }
+                return options;
             }
-        }
-        $("#b-cancel").click(function() {
-          console.log("Cancel");
-          document.location = "pebblejs://close";
-        });
 
-        $("#b-submit").click(function() {
-          console.log("Saving");
+            $().ready(function() {
+                if (typeof window.localStorage !== "undefined") {
+                    if (window.localStorage.twoffeinOptions) {
+                        options = JSON.parse(window.localStorage.twoffeinOptions);
+                        $("#screen-name").val(options.screenName);
+                        $("#api-key").val(options.apiKey);
+                    }
+                }
+                
+                $.get('http://pebble.nilsding.org/configuration/twfn_get_drinklist.php', function (data) {
+                    var drinks = JSON.parse(data);
+                    var options = "";
+                    for (var i = 0; i < drinks.length; i++) {
+                        options = options + "<option value=\"" + drinks[i].key + "\">" + drinks[i].drink + "</option>";
+                    }
+                    $("#drink-up").html(options);
+                    $("#drink-select").html(options);
+                    $("#drink-down").html(options);
+                    if (typeof window.localStorage !== "undefined") {
+                        if (window.localStorage.twoffeinOptions) {
+                            options = JSON.parse(window.localStorage.twoffeinOptions);
+                            $("#drink-up option[value=" + options.drinkUp.key + "]").attr("selected", "selected");
+                            $("#drink-select option[value=" + options.drinkSelect.key + "]").attr("selected", "selected");
+                            $("#drink-down option[value=" + options.drinkDown.key + "]").attr("selected", "selected");
+                        }
+                    }
+                });
+                
+                $("#btn-cancel").click(function() {
+                    document.location = "pebblejs://close";
+                });
 
-          var location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(saveOptions()));
-          console.log("Warping to: " + location);
-          console.log(location);
-          document.location = location;
-        });
-
-      });
-    </script>
-  </body>
+                $("#btn-submit").click(function() {
+                    var location = "pebblejs://close#" + encodeURIComponent(JSON.stringify(saveOptions()));
+                    document.location = location;
+                });
+            });
+        </script>
+    </body>
 </html>

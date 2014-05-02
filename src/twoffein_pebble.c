@@ -17,25 +17,99 @@
 
 #include <pebble.h>
 
-#define SELECT 0
 /* much doge such wow */
 #define loge(x) app_log(APP_LOG_LEVEL_INFO, "twoffein_pebble.c", 0, x)
+#define BUFSIZE 64
+/* appkeys */
+#define SELECT 0
+#define STR_CHANGE_UP 1
+#define STR_CHANGE_SELECT 2
+#define STR_CHANGE_DOWN 3
+/* keys for persistent storage */
+#define KEY_DRINK_UP_STR 1
+#define KEY_DRINK_SELECT_STR 2
+#define KEY_DRINK_DOWN_STR 3
+/* default values */
+#define DEFAULT_DRINK_UP_STR "Kaffee"
+#define DEFAULT_DRINK_SELECT_STR "Eistee"
+#define DEFAULT_DRINK_DOWN_STR "Energie Drink"
 
-#define    TOP_KEY "eistee"
-#define CENTER_KEY "tee"
-#define BOTTOM_KEY "energiedrink"
-#define    TOP_STR "Eistee"
-#define CENTER_STR "Tee"
-#define BOTTOM_STR "Energy Drink"
-
-/*** global structures ***/
+/* global structures */
 
 static Window *window;
 static TextLayer *text_layer_top;
 static TextLayer *text_layer_center;
 static TextLayer *text_layer_bottom;
 
-/*** code ***/
+static char str_drink_up[BUFSIZE];
+static char str_drink_select[BUFSIZE];
+static char str_drink_down[BUFSIZE];
+
+/* function prototypes */
+
+void out_sent_handler(DictionaryIterator *sent, void *context);
+void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context);
+void in_received_handler(DictionaryIterator *iter, void *context);
+void in_dropped_handler(AppMessageResult reason, void *context);
+void interpret_result(AppMessageResult reason);
+static void select_click_handler(ClickRecognizerRef recognizer, void *context);
+static void up_click_handler(ClickRecognizerRef recognizer, void *context);
+static void down_click_handler(ClickRecognizerRef recognizer, void *context);
+static void click_config_provider(void *context);
+static void window_load(Window *window);
+static void window_unload(Window *window);
+static void init(void);
+static void deinit(void);
+
+/* code logic starts here */
+
+int main(void) {
+    init();
+
+    app_event_loop();
+
+    deinit();
+}
+
+void out_sent_handler(DictionaryIterator *sent, void *context) {
+}
+
+void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context) {
+    interpret_result(reason);
+}
+
+void in_received_handler(DictionaryIterator *iter, void *context) {
+    /* get data */
+    Tuple *t = dict_read_first(iter);
+    while (t) {
+        int key = t->key;
+        
+        char tmp[BUFSIZE] = "";
+        strncpy(tmp, t->value->cstring, BUFSIZE);
+        
+        switch (key) {
+            case STR_CHANGE_UP:
+                strncpy(str_drink_up, tmp, BUFSIZE);
+                text_layer_set_text(text_layer_top, str_drink_up);
+                break;
+            case STR_CHANGE_SELECT:
+                strncpy(str_drink_select, tmp, BUFSIZE);
+                text_layer_set_text(text_layer_center, str_drink_select);
+                break;
+            case STR_CHANGE_DOWN:
+                strncpy(str_drink_down, tmp, BUFSIZE);
+                text_layer_set_text(text_layer_bottom, str_drink_down);
+                break;
+        }
+        
+        /* get even more data */
+        t = dict_read_next(iter);
+    }
+}
+
+void in_dropped_handler(AppMessageResult reason, void *context) {
+    interpret_result(reason);
+}
 
 void interpret_result(AppMessageResult reason) {
     switch (reason) {
@@ -80,32 +154,21 @@ void interpret_result(AppMessageResult reason) {
     }
 }
 
-/*** callbacks ***/
-
-void out_sent_handler(DictionaryIterator *sent, void *context) {
-}
-
-void out_failed_handler(DictionaryIterator *failed, AppMessageResult reason, void *context) {
-    interpret_result(reason);
-}
-
-/*** more code ***/
-
-static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
+static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
     
-    Tuplet value = TupletCString(SELECT, CENTER_KEY);
+    Tuplet value = TupletInteger(SELECT, STR_CHANGE_UP);
     dict_write_tuplet(iter, &value);
     
     app_message_outbox_send();
 }
 
-static void up_click_handler(ClickRecognizerRef recognizer, void *context) {
+static void select_click_handler(ClickRecognizerRef recognizer, void *context) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
     
-    Tuplet value = TupletCString(SELECT, TOP_KEY);
+    Tuplet value = TupletInteger(SELECT, STR_CHANGE_SELECT);
     dict_write_tuplet(iter, &value);
     
     app_message_outbox_send();
@@ -115,15 +178,15 @@ static void down_click_handler(ClickRecognizerRef recognizer, void *context) {
     DictionaryIterator *iter;
     app_message_outbox_begin(&iter);
     
-    Tuplet value = TupletCString(SELECT, BOTTOM_KEY);
+    Tuplet value = TupletInteger(SELECT, STR_CHANGE_DOWN);
     dict_write_tuplet(iter, &value);
     
     app_message_outbox_send();
 }
 
 static void click_config_provider(void *context) {
-    window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
     window_single_click_subscribe(BUTTON_ID_UP, up_click_handler);
+    window_single_click_subscribe(BUTTON_ID_SELECT, select_click_handler);
     window_single_click_subscribe(BUTTON_ID_DOWN, down_click_handler);
 }
 
@@ -134,9 +197,9 @@ static void window_load(Window *window) {
     text_layer_top = text_layer_create((GRect) { .origin = { 0, 9 }, .size = { bounds.size.w, 20 } });
     text_layer_center = text_layer_create((GRect) { .origin = { 0, 73 }, .size = { bounds.size.w, 20 } });
     text_layer_bottom = text_layer_create((GRect) { .origin = { 0, 134 }, .size = { bounds.size.w, 20 } });
-    text_layer_set_text(text_layer_top, TOP_STR);
-    text_layer_set_text(text_layer_center, CENTER_STR);
-    text_layer_set_text(text_layer_bottom, BOTTOM_STR);
+    text_layer_set_text(text_layer_top, str_drink_up);
+    text_layer_set_text(text_layer_center, str_drink_select);
+    text_layer_set_text(text_layer_bottom, str_drink_down);
     text_layer_set_text_alignment(text_layer_top, GTextAlignmentCenter);
     text_layer_set_text_alignment(text_layer_center, GTextAlignmentCenter);
     text_layer_set_text_alignment(text_layer_bottom, GTextAlignmentCenter);
@@ -152,6 +215,7 @@ static void window_unload(Window *window) {
 }
 
 static void init(void) {
+    /* create a window */
     window = window_create();
     window_set_click_config_provider(window, click_config_provider);
     window_set_window_handlers(window, (WindowHandlers) {
@@ -159,24 +223,44 @@ static void init(void) {
         .unload = window_unload,
     });
     
+    /* set up AppMessage */
+    app_message_register_inbox_received(in_received_handler);
+    app_message_register_inbox_dropped(in_dropped_handler);
     app_message_register_outbox_sent(out_sent_handler);
     app_message_register_outbox_failed(out_failed_handler);
     
-    const uint32_t inbound_size = 64;
-    const uint32_t outbound_size = 64;
+    const uint32_t inbound_size = 256;
+    const uint32_t outbound_size = BUFSIZE;
     app_message_open(inbound_size, outbound_size);
     
+    /* set up persistent storage */
+    if (persist_exists(KEY_DRINK_UP_STR)) {
+        persist_read_string(KEY_DRINK_UP_STR, str_drink_up, BUFSIZE);
+    } else {
+        strncpy(str_drink_up, DEFAULT_DRINK_UP_STR, BUFSIZE);
+    }
+    if (persist_exists(KEY_DRINK_SELECT_STR)) {
+        persist_read_string(KEY_DRINK_SELECT_STR, str_drink_select, BUFSIZE);
+    } else {
+        strncpy(str_drink_select, DEFAULT_DRINK_SELECT_STR, BUFSIZE);
+    }
+    if (persist_exists(KEY_DRINK_DOWN_STR)) {
+        persist_read_string(KEY_DRINK_DOWN_STR, str_drink_down, BUFSIZE);
+    } else {
+        strncpy(str_drink_down, DEFAULT_DRINK_DOWN_STR, BUFSIZE);
+    }
+    
+    /* push the created window onto the window stack */
     window_stack_push(window, true /* animated */);
 }
 
 static void deinit(void) {
+    /* save the names of the drinks into the persistent storage, as the
+       JavaScript part is be responsible for handling drinks */
+    persist_write_string(KEY_DRINK_UP_STR, str_drink_up);
+    persist_write_string(KEY_DRINK_SELECT_STR, str_drink_select);
+    persist_write_string(KEY_DRINK_DOWN_STR, str_drink_down);
+    
     window_destroy(window);
 }
 
-int main(void) {
-    init();
-
-    app_event_loop();
-
-    deinit();
-}

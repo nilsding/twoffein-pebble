@@ -17,15 +17,27 @@
 
 CONFIGURATION_URL = "http://pebble.nilsding.org/configuration/twoffein.html";
 
-userName = "";
-apiKey = "";
+userName    = "";
+apiKey      = "";
+drinkUp     = { key: "kaffee", drink: "Kaffee" };
+drinkSelect = { key: "eistee", drink: "Eistee" };
+drinkDown   = { key: "energiedrink", drink: "Energy Drink" };
 
 /**
- * Stores the user name and the API key in the PebbleKit Storage.
+ * Stores the user name, the API key and the drinks in the PebbleKit Storage.
  */
 var storeConfiguration = function() {
     window.localStorage.userName = userName;
     window.localStorage.apiKey = apiKey;
+    window.localStorage.drinkUp = JSON.stringify(drinkUp);
+    window.localStorage.drinkSelect = JSON.stringify(drinkSelect);
+    window.localStorage.drinkDown = JSON.stringify(drinkDown);
+    
+    // notifying the Pebble we changed some strings
+    var dict = { "STR_CHANGE_UP": drinkUp.drink,
+                 "STR_CHANGE_SELECT": drinkSelect.drink,
+                 "STR_CHANGE_DOWN": drinkDown.drink };
+    Pebble.sendAppMessage(dict);
 }
 
 /**
@@ -38,13 +50,25 @@ var loadConfiguration = function() {
         config[window.localStorage.key(i)] = window.localStorage.getItem(i);
     }
     if (!config.userName) {
-        userName = ""
+        userName = "";
     }
     if (!config.apiKey) {
-        apiKey = ""
+        apiKey = "";
+    }
+    if (!config.drinkUp) {
+        drinkUp = { key: "kaffee", drink: "Kaffee" };
+    }
+    if (!config.drinkSelect) {
+        drinkSelect = { key: "eistee", drink: "Eistee" };
+    }
+    if (!config.drinkDown) {
+        drinkDown = { key: "energiedrink", drink: "Energy Drink" };
     }
     userName = window.localStorage.userName;
     apiKey = window.localStorage.apiKey;
+    drinkUp = JSON.parse(window.localStorage.drinkUp);
+    drinkSelect = JSON.parse(window.localStorage.drinkSelect);
+    drinkDown = JSON.parse(window.localStorage.drinkDown);
 }
 
 /**
@@ -105,7 +129,19 @@ Pebble.addEventListener("ready", function(e) {
 });
 
 Pebble.addEventListener("appmessage", function(e) {
-    drink(e.payload.SELECT);
+    if (e.payload.SELECT) {
+        switch (e.payload.SELECT) {
+            case 1: // up
+                drink(drinkUp.key);
+                break;
+            case 2: // select
+                drink(drinkSelect.key);
+                break;
+            case 3: // down
+                drink(drinkDown.key);
+                break;
+        }
+    }
 });
 
 Pebble.addEventListener("showConfiguration", function() {
@@ -117,5 +153,8 @@ Pebble.addEventListener("webviewclosed", function(e) {
     var options = JSON.parse(decodeURIComponent(e.response));
     userName = options.screenName;
     apiKey = options.apiKey;
+    drinkUp = options.drinkUp;
+    drinkSelect = options.drinkSelect;
+    drinkDown = options.drinkDown;
     storeConfiguration();
 });

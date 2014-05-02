@@ -10,7 +10,10 @@
     "watchface": false
   },
   "appKeys": {
-    "SELECT": 0
+    "SELECT": 0,
+    "STR_CHANGE_UP": 1,
+    "STR_CHANGE_SELECT": 2,
+    "STR_CHANGE_DOWN": 3
   },
   "resources": {
     "media": [
