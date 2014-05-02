@@ -24,6 +24,17 @@ drinkSelect = { key: "eistee", drink: "Eistee" };
 drinkDown   = { key: "energiedrink", drink: "Energy Drink" };
 
 /**
+ * Sends the Pebble some strings
+ */
+var notifyPebble = function() {
+    
+    var dict = { "STR_CHANGE_UP": drinkUp.drink,
+                 "STR_CHANGE_SELECT": drinkSelect.drink,
+                 "STR_CHANGE_DOWN": drinkDown.drink };
+    Pebble.sendAppMessage(dict);
+}
+
+/**
  * Stores the user name, the API key and the drinks in the PebbleKit Storage.
  */
 var storeConfiguration = function() {
@@ -32,12 +43,7 @@ var storeConfiguration = function() {
     window.localStorage.drinkUp = JSON.stringify(drinkUp);
     window.localStorage.drinkSelect = JSON.stringify(drinkSelect);
     window.localStorage.drinkDown = JSON.stringify(drinkDown);
-    
-    // notifying the Pebble we changed some strings
-    var dict = { "STR_CHANGE_UP": drinkUp.drink,
-                 "STR_CHANGE_SELECT": drinkSelect.drink,
-                 "STR_CHANGE_DOWN": drinkDown.drink };
-    Pebble.sendAppMessage(dict);
+    notifyPebble();
 }
 
 /**
@@ -69,6 +75,7 @@ var loadConfiguration = function() {
     drinkUp = JSON.parse(window.localStorage.drinkUp);
     drinkSelect = JSON.parse(window.localStorage.drinkSelect);
     drinkDown = JSON.parse(window.localStorage.drinkDown);
+    notifyPebble();
 }
 
 /**
