@@ -92,23 +92,23 @@ var drink = function(drink) {
                 var response = JSON.parse(xhr.responseText);
                 switch (response.code) {
                     case "luna":
-                        Pebble.showSimpleNotificationOnPebble("Twoffein", "You are now drinking " + response.drink + ".\n+15 points!");
+                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Du trinkst gerade " + response.drink + ".\n+25 Punkte!");
                         break;
                     case "pinkiepie":
-                        var plural = "s"
+                        var plural = "n"
                         if (response.sleep == 1) {
                             plural = "";
                         }
-                        Pebble.showSimpleNotificationOnPebble("Twoffein", "You can drink again in " + response.sleep + " minute" + plural + ".");
+                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Du kannst wieder in " + response.sleep + " Minute" + plural + " etwas trinken.");
                         break;
                     case "rarity":
-                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Your API key is wrong.");
+                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Dein API-Key ist falsch.");
                         break;
                     case "celestia":
-                        Pebble.showSimpleNotificationOnPebble("Twoffein", "The user (" + userName + ") was not found.");
+                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Der User \"" + userName + "\" wurde nicht gefunden.");
                         break;
                     case "twilightsparkle":
-                        Pebble.showSimpleNotificationOnPebble("Twoffein", "That drink was not found. :(");
+                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Wir konnten dieses Getränk leider nicht finden. :(");
                         break;
                     default:
                         console.log("unknown response code: " + response.code);
@@ -124,7 +124,7 @@ var drink = function(drink) {
 Pebble.addEventListener("ready", function(e) {
     loadConfiguration();
     if (userName.replace(/^\s+|\s+$/g, '') === "" || apiKey.replace(/^\s+|\s+$/g, '') === "") {
-        Pebble.showSimpleNotificationOnPebble("Twoffein", "In order to make this work, you must set your Twoffein.com user name and API key.");
+        Pebble.showSimpleNotificationOnPebble("Twoffein", "Du musst in den Einstellungen deinen Twoffein.com Usernamen und API-Key eintragen.");
     }
 });
 

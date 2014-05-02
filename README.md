@@ -9,6 +9,6 @@ License: GPLv3
 - [x] make Git repo
 - [x] make drink selection changable via the Pebble app on the iOS/Android device
 - [x] clean up code (kinda)
-- [ ] port it to the new™ Twoffein3 API
-- [ ] Germanize everystring!
+- [x] Germanize everystring!
 - [ ] add it to the Pebble app store
+- [ ] port it to the new™ Twoffein3 API
