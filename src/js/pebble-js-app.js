@@ -96,10 +96,14 @@ var drink = function(drink) {
                         break;
                     case "pinkiepie":
                         var plural = "n"
-                        if (response.sleep == 1) {
+                        var sleep = response.sleep;
+                        if (sleep == 1) {
                             plural = "";
+                        } else if (sleep == 0) {
+                            plural = "";
+                            sleep = "weniger als 1"
                         }
-                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Du kannst wieder in " + response.sleep + " Minute" + plural + " etwas trinken.");
+                        Pebble.showSimpleNotificationOnPebble("Twoffein", "Du kannst wieder in " + sleep + " Minute" + plural + " etwas trinken.");
                         break;
                     case "rarity":
                         Pebble.showSimpleNotificationOnPebble("Twoffein", "Dein API-Key ist falsch.");
